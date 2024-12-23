@@ -1,7 +1,7 @@
 import path from "node:path";
 import { existsSync } from "fs";
-import type { RunnerScript } from "../src";
 import { readdir } from "node:fs/promises";
+import type { RunnerScript } from "@/index";
 
 export const getScriptsDirectory = (customPath?: string) => {
  return path.join(process.cwd(), customPath || "./scripts");

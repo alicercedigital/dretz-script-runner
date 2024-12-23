@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-import { loadScripts, listScripts } from "./load-scripts";
-import { runScript } from "./run-script";
 import inquirer from "inquirer";
 import chalk from "chalk";
 import boxen from "boxen";
 import { Command } from "commander";
 import path from "path";
+import { loadScripts, listScripts } from "@/load-scripts";
+import { runScript } from "@/run-script";
 
 export type RunnerScript = {
  name: string;

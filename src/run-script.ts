@@ -1,5 +1,5 @@
-import type { RunnerScript } from ".";
-import { listScripts } from "./load-scripts";
+import type { RunnerScript } from "@/index";
+import { listScripts } from "@/load-scripts";
 import { spawn } from "node:child_process";
 import type { ChildProcess } from "node:child_process";
 
