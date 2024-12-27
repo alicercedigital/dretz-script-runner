@@ -1,10 +1,9 @@
 import type { RunnerScript } from "@/index";
 import { listScripts } from "@/load-scripts";
-import { spawn } from "node:child_process";
-import type { ChildProcess } from "node:child_process";
+import type { Subprocess } from "bun";
 
 const setupSignalHandlers = (cleanup: () => Promise<void>) => {
- const signals: NodeJS.Signals[] = ["SIGINT", "SIGTERM", "SIGQUIT"];
+ const signals: string[] = ["SIGINT", "SIGTERM", "SIGQUIT"];
 
  signals.forEach((signal) => {
   process.on(signal, async () => {
@@ -12,14 +11,14 @@ const setupSignalHandlers = (cleanup: () => Promise<void>) => {
    await cleanup();
    // Give some time for cleanup before exiting
    setTimeout(() => {
-    return process.exit(1);
+    process.exit(1);
    }, 100);
   });
  });
 };
 
 type RunningProcess = {
- process: ChildProcess;
+ process: Subprocess;
  controller: AbortController;
 };
 
@@ -44,9 +43,8 @@ export const runScript = async (
 
  try {
   const args = process.argv.slice(3);
-  const child = spawn("bun", [script.path, ...args], {
-   stdio: "inherit",
-   shell: true,
+  const child = Bun.spawn(["bun", script.path, ...args], {
+   stdio: ["inherit", "inherit", "inherit"],
    signal: controller.signal,
   });
 
@@ -55,39 +53,41 @@ export const runScript = async (
   const cleanup = async () => {
    if (currentProcess) {
     currentProcess.controller.abort();
-    currentProcess.process.kill("SIGTERM");
+    currentProcess.process.kill();
    }
   };
 
   setupSignalHandlers(cleanup);
 
   return new Promise((resolve, reject) => {
-   child.on("error", (error) => {
-    if (error.name === "AbortError") {
-     console.info("Script execution was aborted");
-     resolve();
-    } else {
-     console.error(`❌ Error running script: ${error.message}`);
-     reject(error);
-    }
-   });
-
-   child.on("exit", (code) => {
-    currentProcess = null;
-    if (code === 0) {
-     console.info(`✅ Script "${scriptName}" completed successfully`);
-     resolve();
-    } else if (code === null) {
-     console.info("Script execution was terminated");
-     resolve();
-    } else {
-     console.error(`❌ Script ${scriptName} failed with code ${code}`);
-     reject("");
-    }
-   });
+   // Wait for process to exit
+   child.exited
+    .then((status) => {
+     currentProcess = null;
+     if (status === 0) {
+      console.info(`✅ Script "${scriptName}" completed successfully`);
+      resolve();
+     } else if (status === null) {
+      console.info("Script execution was terminated");
+      resolve();
+     } else {
+      console.error(`❌ Script ${scriptName} failed with code ${status}`);
+      reject(new Error(`Script exited with code ${status}`));
+     }
+    })
+    .catch((error) => {
+     if (error.name === "AbortError") {
+      console.info("Script execution was aborted");
+      resolve();
+     } else {
+      console.error(`❌ Error running script: ${error.message}`);
+      reject(error);
+     }
+    });
   });
  } catch (error) {
   console.error(`❌ Failed to run script ${scriptName}:`);
   console.error(error);
+  throw error;
  }
 };
