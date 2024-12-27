@@ -1,6 +1,6 @@
 {
  "name": "@alicercedigital/runner",
- "version": "1.0.6",
+ "version": "1.0.7",
  "description": "A simple script runner utility for Bun projects. Run scripts from the command line.",
  "type": "module",
  "main": "dist/index.js",
@@ -24,6 +24,7 @@
  "license": "MIT",
  "devDependencies": {
   "@types/node": "^20.0.0",
+  "@types/yargs-parser": "^21.0.3",
   "eslint": "^9.17.0",
   "tsup": "^8.3.5",
   "typescript": "^5.0.0",
@@ -35,6 +36,7 @@
  "dependencies": {
   "boxen": "^8.0.1",
   "chalk": "^5.4.1",
-  "inquirer": "^12.3.0"
+  "inquirer": "^12.3.0",
+  "yargs-parser": "^21.1.1"
  }
 }

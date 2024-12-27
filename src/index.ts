@@ -1,8 +1,8 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 import inquirer from "inquirer";
 import chalk from "chalk";
 import boxen from "boxen";
-import { Command } from "commander";
+import parseArgs from "yargs-parser";
 import path from "path";
 import { loadScripts, listScripts } from "@/load-scripts";
 import { runScript } from "@/run-script";
@@ -12,17 +12,48 @@ export type RunnerScript = {
  path: string;
 };
 
-const program = new Command();
+// Parse command line arguments
+const argv = parseArgs(process.argv.slice(2), {
+ alias: {
+  p: "path",
+  l: "list",
+  s: "script",
+  v: "verbose",
+  h: "help",
+  V: "version",
+ },
+ boolean: ["list", "verbose", "help"],
+ string: ["path", "script"],
+});
 
-// Setup commander configuration
-program
- .name("script-runner")
- .description("Interactive script runner with custom path support")
- .version("1.0.0")
- .option("-p, --path <path>", "Custom scripts directory path")
- .option("-l, --list", "List all available scripts")
- .option("-s, --script <name>", "Run a specific script directly")
- .option("-v, --verbose", "Show detailed script execution information");
+// Show help if requested
+if (argv.help) {
+ console.log(
+  boxen(
+   `${chalk.bold.blue("Script Runner")}\n\n` +
+    `Options:\n` +
+    `  -p, --path <path>    Custom scripts directory path\n` +
+    `  -l, --list          List all available scripts\n` +
+    `  -s, --script <name>  Run a specific script directly\n` +
+    `  -v, --verbose       Show detailed script execution information\n` +
+    `  -h, --help          Show this help message\n` +
+    `  -V, --version       Show version number`,
+   {
+    padding: 1,
+    margin: 1,
+    borderStyle: "round",
+    borderColor: "blue",
+   },
+  ),
+ );
+ process.exit(0);
+}
+
+// Show version if requested
+if (argv.version) {
+ console.log("1.0.0");
+ process.exit(0);
+}
 
 const showWelcomeMessage = () => {
  console.log(
@@ -81,24 +112,20 @@ const getScriptDirectories = (customPath?: string): string[] => {
 
 const main = async (): Promise<void> => {
  try {
-  // Parse command line arguments correctly
-  program.parse(process.argv);
-  const options = program.opts();
-
   // Get all potential script directories
-  const scriptDirs = getScriptDirectories(options.path);
+  const scriptDirs = getScriptDirectories(argv.path);
   let scripts: RunnerScript[] = [];
 
   // Try loading scripts from each directory until we find some
   for (const dir of scriptDirs) {
-   if (options.verbose) {
+   if (argv.verbose) {
     console.log(chalk.gray(`Searching for scripts in: ${dir}`));
    }
 
    const loadedScripts = await loadScripts(dir);
    if (loadedScripts.length > 0) {
     scripts = loadedScripts;
-    if (options.verbose) {
+    if (argv.verbose) {
      console.log(
       chalk.green(`✓ Found ${loadedScripts.length} scripts in ${dir}`),
      );
@@ -108,16 +135,16 @@ const main = async (): Promise<void> => {
   }
 
   // Handle different modes of operation
-  if (options.list) {
+  if (argv.list) {
    listScripts(scripts);
    return;
   }
 
-  if (options.script) {
-   if (options.verbose) {
-    console.log(chalk.blue(`Running script: ${options.script}`));
+  if (argv.script) {
+   if (argv.verbose) {
+    console.log(chalk.blue(`Running script: ${argv.script}`));
    }
-   await runScript(options.script, scripts);
+   await runScript(argv.script, scripts);
    return;
   }
 
@@ -125,7 +152,7 @@ const main = async (): Promise<void> => {
   showWelcomeMessage();
   const selectedScript = await selectScript(scripts);
 
-  if (options.verbose) {
+  if (argv.verbose) {
    console.log(chalk.blue(`Running selected script: ${selectedScript}`));
   }
 
