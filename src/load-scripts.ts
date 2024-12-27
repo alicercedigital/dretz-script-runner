@@ -13,7 +13,6 @@ export const loadScripts = async (
  const scriptsDir = getScriptsDirectory(customPath);
 
  if (!existsSync(scriptsDir)) {
-  console.error(`❌ ${scriptsDir} - Scripts directory not found!`);
   return [];
  }
 
