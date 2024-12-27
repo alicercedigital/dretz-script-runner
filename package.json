@@ -1,6 +1,6 @@
 {
  "name": "@alicercedigital/runner",
- "version": "1.0.2",
+ "version": "1.0.3",
  "description": "A simple script runner utility for Bun projects. Run scripts from the command line.",
  "type": "module",
  "main": "dist/index.js",
