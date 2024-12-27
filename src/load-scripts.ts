@@ -3,17 +3,14 @@ import { existsSync } from "fs";
 import type { RunnerScript } from "../src";
 import { readdir } from "node:fs/promises";
 
-type Script = {
- name: string;
- path: string;
-};
-
 export const getScriptsDirectory = (customPath?: string) => {
- return customPath || path.join(process.cwd(), "./scripts");
+ return path.join(process.cwd(), customPath || "./scripts");
 };
 
-export const loadScripts = async (): Promise<Script[]> => {
- const scriptsDir = getScriptsDirectory();
+export const loadScripts = async (
+ customPath?: string,
+): Promise<RunnerScript[]> => {
+ const scriptsDir = getScriptsDirectory(customPath);
 
  if (!existsSync(scriptsDir)) {
   console.error("❌ Scripts directory not found!");
@@ -21,7 +18,7 @@ export const loadScripts = async (): Promise<Script[]> => {
  }
 
  try {
-  const scripts: Script[] = [];
+  const scripts: RunnerScript[] = [];
   const entries = await readdir(scriptsDir, { withFileTypes: true });
 
   // Process entries
