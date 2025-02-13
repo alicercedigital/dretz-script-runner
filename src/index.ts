@@ -12,49 +12,6 @@ export type RunnerScript = {
  path: string;
 };
 
-// Parse command line arguments
-const argv = parseArgs(process.argv.slice(2), {
- alias: {
-  p: "path",
-  l: "list",
-  s: "script",
-  v: "verbose",
-  h: "help",
-  V: "version",
- },
- boolean: ["list", "verbose", "help"],
- string: ["path", "script"],
-});
-
-// Show help if requested
-if (argv.help) {
- console.log(
-  boxen(
-   `${chalk.bold.blue("Script Runner")}\n\n` +
-    `Options:\n` +
-    `  -p, --path <path>    Custom scripts directory path\n` +
-    `  -l, --list          List all available scripts\n` +
-    `  -s, --script <name>  Run a specific script directly\n` +
-    `  -v, --verbose       Show detailed script execution information\n` +
-    `  -h, --help          Show this help message\n` +
-    `  -V, --version       Show version number`,
-   {
-    padding: 1,
-    margin: 1,
-    borderStyle: "round",
-    borderColor: "blue",
-   },
-  ),
- );
- process.exit(0);
-}
-
-// Show version if requested
-if (argv.version) {
- console.log("1.0.0");
- process.exit(0);
-}
-
 const showWelcomeMessage = () => {
  console.log(
   boxen(
@@ -112,6 +69,41 @@ const getScriptDirectories = (customPath?: string): string[] => {
 
 const main = async (): Promise<void> => {
  try {
+  // Parse command line arguments
+  const argv = parseArgs(process.argv.slice(2), {
+   alias: {
+    p: "path",
+    l: "list",
+    s: "script",
+    v: "verbose",
+    h: "help",
+   },
+   boolean: ["list", "verbose", "help"],
+   string: ["path", "script"],
+  });
+
+  // Show help if requested
+  if (argv.help) {
+   console.log(
+    boxen(
+     `${chalk.bold.blue("Script Runner")}\n\n` +
+      `Options:\n` +
+      `  -p, --path <path>    Custom scripts directory path\n` +
+      `  -l, --list          List all available scripts\n` +
+      `  -s, --script <name>  Run a specific script directly\n` +
+      `  -v, --verbose       Show detailed script execution information\n` +
+      `  -h, --help          Show this help message\n`,
+     {
+      padding: 1,
+      margin: 1,
+      borderStyle: "round",
+      borderColor: "blue",
+     },
+    ),
+   );
+   process.exit(0);
+  }
+
   // Get all potential script directories
   const scriptDirs = getScriptDirectories(argv.path);
   let scripts: RunnerScript[] = [];
